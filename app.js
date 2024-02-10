@@ -10,11 +10,13 @@ const PORT = process.env.PORT || 8000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use('/', (req, res, next) => {
-    console.log("SUCCESS!");
-    return res.status(200).json({user: "Vansh Chheda"})
-});
+// app.use('/', (req, res, next) => {
+//     console.log("SUCCESS!");
+//     return res.status(200).json({user: "Vansh Chheda"})
+// });
 
+const userRoutes = require('./Utils/allUserRoutes');
+userRoutes.User_Routes(app);
 
 db.mongoConnect(() => {
 
