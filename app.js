@@ -18,6 +18,9 @@ app.use(bodyParser.json());
 const userRoutes = require('./Utils/allUserRoutes');
 userRoutes.User_Routes(app);
 
+const adminRoutes = require('./Utils/allAdminRoutes');
+adminRoutes.Admin_Routes(app);
+
 db.mongoConnect(() => {
 
     app.listen(PORT, () => {
