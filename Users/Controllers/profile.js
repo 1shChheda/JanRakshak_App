@@ -25,6 +25,7 @@ const getUserProfile = async(req, res, next) => {
         User.findById(userId)
         .then(user => {
             console.log(user);
+            return res.status(200).json({ user })
         })
     } catch (error) {
         console.log(error);
