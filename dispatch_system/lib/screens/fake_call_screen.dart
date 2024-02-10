@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:flutter_callkit_incoming/entities/entities.dart';
 // import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import '../components/fake_call_component.dart';
 import '/components/app_bar.dart';
 //import '/components/fake_call_component.dart';
 import '/utils/color.dart';
@@ -58,20 +59,20 @@ class FakeCallScreen extends StatelessWidget {
       appBar: const AppBarConstant(),
       backgroundColor: rBackground,
       body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(
-                "assets/images/bgImage.png"), // Replace with your image path
-            fit: BoxFit.cover,
-          ),
-        ),
+        // decoration: const BoxDecoration(
+        //   image: DecorationImage(
+        //     image: AssetImage(
+        //         "assets/images/bgImage.png"), // Replace with your image path
+        //     fit: BoxFit.cover,
+        //   ),
+        // ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 10.0),
-              // _buildFakeCallCard(context),
-              //const FakeCallComponent(),
+              //_buildFakeCallCard(context),
+              const FakeCallComponent(),
               const SizedBox(height: 5.0),
               Expanded(
                 child: GridView.count(
