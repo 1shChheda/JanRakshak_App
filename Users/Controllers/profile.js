@@ -18,6 +18,21 @@ const addUser = async(req, res, next) => {
     }
 };
 
+const getUserProfile = async(req, res, next) => {
+
+    const { userId } = req.body;
+    try {
+        User.findById(userId)
+        .then(user => {
+            console.log(user);
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     addUser: addUser,
+    getUserProfile: getUserProfile,
 }

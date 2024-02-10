@@ -5,8 +5,8 @@ class User {
     constructor(id, name, phoneNo, emergencyContacts) {
         this._id = id ? new mongodb.ObjectId(id) : null;
         this.name = name;
+        this.phoneNo = phoneNo;
         this.emergencyContacts = emergencyContacts; // { emergencyContacts: [] }
-
 
     }
 
@@ -20,6 +20,16 @@ class User {
                 .then(result => console.log(result))
                 .catch(err => console.log(err))
         }
+    }
+
+    static findById(userId) {
+        const database = db.getDb();
+        
+        return database.collection('users').find({ _id: new mongodb.ObjectId(userId) }).toArray()
+            .then(users => {
+                return users[0]
+            })
+            .catch(err => console.log(err))
     }
 }
 
