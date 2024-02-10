@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../screens/details_page.dart';
 import '../screens/fake_call_screen.dart';
+import '../screens/home_screen.dart';
 import '../screens/near_me_screen.dart';
 import '../screens/safe_nav_screen.dart';
 import '/utils/color.dart';
@@ -21,8 +23,9 @@ class _BottomPageState extends State<BottomPage> {
   List<Widget> pages = <Widget>[
     const NearMeScreen(),
     const SafeNavScreen(),
-    //const StartScreen(),
+    const StartScreen(),
     const FakeCallScreen(),
+    const DetailsPage(),
     //const BlogScreen()
   ];
   @override
@@ -60,21 +63,21 @@ class _BottomPageState extends State<BottomPage> {
             icon: Icon(Icons.location_on),
             backgroundColor: rBottomBar,
           ),
-          // BottomNavigationBarItem(
-          //   label: "Home",
-          //   icon: Icon(Icons.space_dashboard_rounded),
-          //   backgroundColor: rBottomBar,
-          // ),
+          BottomNavigationBarItem(
+            label: "Home",
+            icon: Icon(Icons.space_dashboard_rounded),
+            backgroundColor: rBottomBar,
+          ),
           BottomNavigationBarItem(
             label: "Fake Call",
             icon: Icon(Icons.call),
             backgroundColor: rBottomBar,
           ),
-          // BottomNavigationBarItem(
-          //   label: "Blogs",
-          //   icon: Icon(Icons.bookmarks_sharp),
-          //   backgroundColor: rBottomBar,
-          // ),
+          BottomNavigationBarItem(
+            label: "Profile",
+            icon: Icon(Icons.person),
+            backgroundColor: rBottomBar,
+          ),
         ],
       ),
     );

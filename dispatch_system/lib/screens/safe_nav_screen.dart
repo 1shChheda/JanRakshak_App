@@ -8,7 +8,7 @@ import 'package:google_maps_webservice/places.dart' as places;
 
 final places.GoogleMapsPlaces placesAPI =
     places.GoogleMapsPlaces(apiKey: "AIzaSyDiziClz5wUhO7M79hHQEU5n7ojpFXw93k");
-const String googleAPIKey = "AIzaSyDiziClz5wUhO7M79hHQEU5n7ojpFXw93k";
+const String googleAPIKey = "AIzaSy0c3965368a6b10f7640dbda46abfdca98";
 
 class SafeNavScreen extends StatelessWidget {
   const SafeNavScreen({Key? key}) : super(key: key);

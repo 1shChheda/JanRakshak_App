@@ -8,6 +8,7 @@ const Color rLightBlue = Color(0xFFBDE0FE);
 const Color rBackground = Color.fromARGB(255, 255, 255, 255);
 // const Color rBackground = Color(0xFFBDE0FE);
 const Color rBoxes = Color(0xFFA7FFF6);
+const Color greenPrimary = Color(0xFF17A18E);
 const Color rDarkBlue = Color.fromARGB(255, 66, 161, 250);
 const Color rBottomBar = Color(0xFF7A7AB6);
 const Color p1 = Colors.white;

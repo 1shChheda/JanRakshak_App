@@ -55,7 +55,7 @@ class _FakeCallComponentState extends State<FakeCallComponent> {
 
       if (permissionStatus.isGranted) {
         Future.delayed(const Duration(seconds: 2), () {});
-        await audioRecord.start();
+        await audioRecord.start(encoder: AudioEncoder.wav);
         setState(() {
           isRecording = true;
         });
