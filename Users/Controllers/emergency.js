@@ -20,16 +20,24 @@ const sendWidgets = async (req, res, next) => {
 
 const sendEmergencyContact = async(req, res, next) => {
     try {
+        const { userId, coordinates } = req.body;
         User.findById(userId)
             .then(user => {
                 
-                const { name, emergency, coordinates, phoneNo } = user;
-                
-                sendSMS(name, emergency, coordinates, phoneNo)
+                const updateUser = new User(user._id, user.name, user.phoneNo, user.emergencyContacts, coordinates)
+                updateUser.save()
                     .then(success => {
-                        return res.status(200).json({ message: "SMS sent successfully!" })
+                        return res.status(200).json({ emergencyContacts: user.emergencyContacts })
                     })
                     .catch(err => console.log(err))
+                    
+                // const { name, emergency, phoneNo } = user;
+                
+                // sendSMS(name, emergency, coordinates, phoneNo)
+                //     .then(success => {
+                //         return res.status(200).json({ message: "SMS sent successfully!" })
+                //     })
+                //     .catch(err => console.log(err))
 
             })
 

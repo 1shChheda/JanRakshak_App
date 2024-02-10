@@ -2,12 +2,12 @@ const mongodb = require('mongodb');
 const db = require('../Utils/dbConnect');
 
 class User {
-    constructor(id, name, phoneNo, emergencyContacts) {
+    constructor(id, name, phoneNo, emergencyContacts, lastEmergencyCoord) {
         this._id = id ? new mongodb.ObjectId(id) : null;
         this.name = name;
         this.phoneNo = phoneNo;
         this.emergencyContacts = emergencyContacts; // { emergencyContacts: [] }
-
+        this.lastEmergencyCoord = lastEmergencyCoord; // { lastEmergencyCoord : [lat, lon] }
     }
 
     save() {
