@@ -21,21 +21,21 @@ const sendWidgets = async (req, res, next) => {
     }
 };
 
-const sendEmergencyContact = async(req, res, next) => {
+const sendEmergencyContact = async (req, res, next) => {
     try {
         const { userId, coordinates } = req.body;
         User.findById(userId)
             .then(user => {
-                
+
                 const updateUser = new User(user._id, user.name, user.phoneNo, user.emergencyContacts, coordinates)
                 updateUser.save()
                     .then(success => {
                         return res.status(200).json({ emergencyContacts: user.emergencyContacts })
                     })
                     .catch(err => console.log(err))
-                    
+
                 // const { name, emergency, phoneNo } = user;
-                
+
                 // sendSMS(name, emergency, coordinates, phoneNo)
                 //     .then(success => {
                 //         return res.status(200).json({ message: "SMS sent successfully!" })
@@ -52,7 +52,7 @@ const sendEmergencyContact = async(req, res, next) => {
     }
 };
 
-const getAllHospitalsByRank = async(req, res, next) => {
+const getAllHospitalsByRank = async (req, res, next) => {
 
     const { userId } = req.body;
 
@@ -100,6 +100,8 @@ const nearestHospitalsInPriorityOrder = async (req, res, next) => {
             }
         }
 
+        const updateUser = new User(user._id, user.name, user.phoneNo, user.emergencyContacts, user.lastEmergencyCoord, nearestHospitals)
+        await updateUser.save()
         return res.json(nearestHospitals);
     } catch (error) {
         console.log(error);
@@ -107,9 +109,34 @@ const nearestHospitalsInPriorityOrder = async (req, res, next) => {
     }
 };
 
-const verifyResources = async(req, res, next) => {
-    
+const verifyResources = async (req, res, next) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+        const hospitalIds = user.lastNearestResources;
+
+        for (const hospitalId of hospitalIds) {
+            const hospital = await Hospital.findById(hospitalId);
+            const { ambulances, beds, doctors } = hospital.resources;
+
+            if (ambulances > 0 && beds > 0 && doctors > 0) {
+                hospital.resources.ambulances--;
+                hospital.resources.beds--;
+
+                const updateHospital = new Hospital(hospital._id, hospital.name, hospital.lat, hospital.long, hospital.resources)
+                await updateHospital.save();
+
+                return res.status(200).json({ coordinates: [hospital.lat, hospital.long] });
+            }
+        }
+
+        return res.status(404).json({ message: 'No hospital found with all resources available' });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+    }
 };
+
 
 
 module.exports = {
