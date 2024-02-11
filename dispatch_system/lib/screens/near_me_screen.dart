@@ -111,8 +111,8 @@ class NearMeScreen extends StatelessWidget {
                       searchLocation: "Pharmacies",
                     ),
                     _buildServiceBox(
-                      image: 'assets/images/temples.png',
-                      text: "Religious",
+                      image: 'assets/images/bloodbank.jpg',
+                      text: "BloodBank",
                       gradientColors: [p1, p1],
                       searchLocation: "Temples",
                     ),
