@@ -1,6 +1,9 @@
+const mongodb = require('mongodb');
 const User = require('../../Models/user');
+const Hospital = require('../../Models/hospital');
 const text_to_widget = require('../../Utils/text_to_widget');
 const sendSMS = require('../../Utils/sendSMS');
+const calculateHospitalDistances = require('../../Utils/findNearestLocation');
 
 const sendWidgets = async (req, res, next) => {
     try {
@@ -49,7 +52,70 @@ const sendEmergencyContact = async(req, res, next) => {
     }
 };
 
+const getAllHospitalsByRank = async(req, res, next) => {
+
+    const { userId } = req.body;
+
+    try {
+
+        User.findById(userId)
+            .then(user => {
+                const currentLatitude = user.lastEmergencyCoord[0];
+                const currentLongitude = user.lastEmergencyCoord[1];
+                Hospital.fetchAll()
+                    .then(hospitals => {
+                        const rankedHospitalsData = calculateHospitalDistances(currentLatitude, currentLongitude, hospitals);
+                        return res.json(rankedHospitalsData);
+                    })
+                    .catch(err => console.log(err))
+            })
+            .catch(err => console.log(err))
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+const nearestHospitalsInPriorityOrder = async (req, res, next) => {
+    const { userId } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        const currentLatitude = user.lastEmergencyCoord[0];
+        const currentLongitude = user.lastEmergencyCoord[1];
+        const hospitals = await Hospital.fetchAll();
+
+        let nearestHospitals = [];
+
+        const rankedHospitalsData = calculateHospitalDistances(currentLatitude, currentLongitude, hospitals);
+
+        for (const obj of rankedHospitalsData) {
+            try {
+                const hospital = await Hospital.findOne({ name: obj.hospitalName });
+                // console.log(hospital);
+                nearestHospitals.push(new mongodb.ObjectId(hospital._id));
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        return res.json(nearestHospitals);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+const verifyResources = async(req, res, next) => {
+    
+};
+
+
 module.exports = {
     sendWidgets: sendWidgets,
     sendEmergencyContact: sendEmergencyContact,
+    getAllHospitalsByRank: getAllHospitalsByRank,
+    nearestHospitalsInPriorityOrder: nearestHospitalsInPriorityOrder,
+    verifyResources: verifyResources,
 }

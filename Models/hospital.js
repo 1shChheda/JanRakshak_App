@@ -22,6 +22,17 @@ class Hospital {
         }
     }
 
+    static fetchAll() {
+        const database = db.getDb();
+
+        return database.collection('hospitals').find().toArray()
+            .then(hospitals => {
+                return hospitals;
+            })
+            .catch(err => console.log(err))
+
+    }
+
     static findById(userId) {
         const database = db.getDb();
         
@@ -31,6 +42,16 @@ class Hospital {
             })
             .catch(err => console.log(err))
     }
+
+    static findOne(filter) {
+        const database = db.getDb();
+    
+        return database.collection('hospitals').findOne(filter)
+            .then(user => {
+                return user;
+            })
+            .catch(err => console.log(err));    }
+    
 };
 
 module.exports = Hospital;
