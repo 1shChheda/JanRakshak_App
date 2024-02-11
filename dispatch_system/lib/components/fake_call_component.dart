@@ -108,7 +108,7 @@ class _FakeCallComponentState extends State<FakeCallComponent> {
       String? path = await audioRecord.stop();
       setState(() {
         isRecording = false;
-        audioPath = path!;
+        audioPath = path??'';
       });
       print('Recorded audio path: $audioPath');
 
@@ -121,7 +121,7 @@ class _FakeCallComponentState extends State<FakeCallComponent> {
       if (response.isSuccessful) {
         String? cloudinaryUrl = response.secureUrl;
         print('Cloudinary URL: $cloudinaryUrl');
-        await sendAudioViaTwilio(cloudinaryUrl!);
+        await sendAudioViaTwilio(cloudinaryUrl??'');
       } else {
         print('Cloudinary upload failed: ${response.error}');
       }

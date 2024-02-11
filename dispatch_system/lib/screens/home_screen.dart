@@ -15,7 +15,8 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen> {
-
+  TextEditingController transcribeController = TextEditingController();
+   String? transcribe = '';
   final List<String> contacts = ['+917045246557', '+919372630510'];
 
   @override
@@ -32,14 +33,41 @@ class _StartScreenState extends State<StartScreen> {
         ),
         child: Column(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(20),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Expanded(
+                  //   flex: 1,
+                  //   child: WarriorsBox(),
+                  // ),
                   Expanded(
                     flex: 1,
-                    child: WarriorsBox(),
+                    child: Container(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Are you in a situation where you can not talk?',
+                            style: TextStyle(
+                                color: Colors.red[400],
+                                fontWeight: FontWeight.bold),
+                          ),
+                          TextField( controller: transcribeController,
+                          onEditingComplete: (){
+                            transcribe=transcribeController.value.text;
+                          },
+                            decoration: InputDecoration(
+                              hintText: 'Enter your message here',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(width: 20),
                   // Expanded(

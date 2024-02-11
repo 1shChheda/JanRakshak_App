@@ -18,29 +18,15 @@ class EmergencyButton extends StatefulWidget {
 
 class _EmergencyButtonState extends State<EmergencyButton> {
   bool isTriggeringEnabled = false;
- // ShakeDetector? shakeDetector;
+  // ShakeDetector? shakeDetector;
   int shakeCount = 0;
   @override
   void initState() {
     super.initState();
-
-    // shakeDetector = ShakeDetector.autoStart(
-    //   onPhoneShake: () {
-    //     setState(() {
-    //       shakeCount++;
-    //       print('Shake count : $shakeCount');
-    //       if (shakeCount >= 3) {
-    //         _getCurrentLocationAndTrigger(widget.contacts);
-    //         shakeCount = 0;
-    //       }
-    //     });
-    //   },
-    // );
   }
 
   @override
   void dispose() {
-   // shakeDetector?.stopListening();
     super.dispose();
   }
 
@@ -146,13 +132,12 @@ class _EmergencyButtonState extends State<EmergencyButton> {
       message += 'Latitude: ${position.latitude}\n';
       message += 'Longitude: ${position.longitude}\n';
       message += 'Click the following link to see my live location:\n';
-      message +=
-          'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
+      message +='https://www.google.com/maps?q=${position.latitude},${position.longitude}';
 
       TwilioFlutter twilioFlutter = TwilioFlutter(
         accountSid: dotenv.env['TWILIO_ACCOUNT_SID']!,
         authToken: dotenv.env['TWILIO_AUTH_TOKEN']!,
-        twilioNumber: dotenv.env['TWILIO_PHONE_NUMBER']!,
+        twilioNumber: dotenv.env['TWILIO_FROM_NUMBER']!,
       );
 
       for (String contact in contacts) {
@@ -208,7 +193,9 @@ class _EmergencyButtonState extends State<EmergencyButton> {
         speedAccuracy: 0,
         timestamp: DateTime.now(),
         accuracy: double.infinity,
-        floor: position.floor, altitudeAccuracy: 0, headingAccuracy: 0,
+        floor: position.floor,
+        altitudeAccuracy: 0,
+        headingAccuracy: 0,
       );
       // Fluttertoast.showToast(msg: 'User reached home. Triggering is OFF');
     }

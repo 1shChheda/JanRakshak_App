@@ -1,11 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:dispatch_system/components/api.dart';
+import 'package:dispatch_system/models/audioModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '/utils/color.dart';
-import 'package:camera/camera.dart';
-import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
@@ -13,8 +15,12 @@ import 'package:cloudinary/cloudinary.dart';
 import 'package:http/http.dart' as http;
 
 class SOSButton extends StatefulWidget {
-  const SOSButton({Key? key, required this.contacts,})
-      : super(key: key);
+  final String? transcribe;
+  const SOSButton({
+    Key? key,
+    required this.contacts,
+    this.transcribe,
+  }) : super(key: key);
   final List<String> contacts;
 
   @override
@@ -22,69 +28,73 @@ class SOSButton extends StatefulWidget {
 }
 
 class _SOSButtonState extends State<SOSButton> {
-  bool isClicked = false;
-  // late String? cloudinaryUrlAudio;
-  // late String? cloudinaryUrlVideo;
-  late String videoPath;
-  late Record audioRecord = Record();
-  late AudioPlayer audioPlayer;
+  late String transcibe = widget.transcribe ?? '';
   String audioPath = '';
   final cloudinary = Cloudinary.signedConfig(
     apiKey: dotenv.env['API_KEY']!,
     apiSecret: dotenv.env['API_SECRET']!,
     cloudName: dotenv.env['CLOUD_NAME']!,
   );
-  bool isRecording = false;
+  final recorder = FlutterSoundRecorder();
 
-  Future<void> getNearestUsers(
-      String authToken, String latitude, String longitude) async {
-    final params = {'latitude': latitude, 'longitude': longitude};
-    final url = Uri.parse(
-            'https://rakshika.onrender.com/network/community-users-search/')
-        .replace(queryParameters: params);
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $authToken'
-    };
+  void initState() {
+    initRecorder();
+    super.initState();
+  }
 
-    final response = await http.get(
-      url,
-      headers: headers,
-    );
+  @override
+  void dispose() {
+    recorder.closeRecorder();
+    super.dispose();
+  }
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to perform community search.');
+  bool isClicked = false;
+  Future initRecorder() async {
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw 'Permission not granted';
+    }
+    await recorder.openRecorder();
+    recorder.setSubscriptionDuration(const Duration(milliseconds: 500));
+  }
+
+  Future<void> requestPermissions() async {
+    var status = await Permission.storage.request();
+    if (status != PermissionStatus.granted) {
+      throw 'Permission not granted';
     }
   }
 
-  Future<String> setEvidence(String authToken, String videoPath,
-      String audioPath, String location) async {
-    final url = Uri.parse('https://rakshika.onrender.com/evidences/');
-    // final url = Uri.parse('http://192.168.33.165:8000/evidences/');
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $authToken'
-    };
-    final request = http.MultipartRequest('POST', url);
-    // final body = jsonEncode({
-    //   'video': videoPath ?? "",k
-    //   'audio': audioPath ?? "",
-    //   'location': location,
-    // });
-    request.headers.addAll(headers);
-    request.files.add(await http.MultipartFile.fromPath('audio', audioPath));
-    request.files.add(await http.MultipartFile.fromPath('video', videoPath));
-    request.fields['location'] = location;
-    // final response = await http.post(url, body: body, headers: headers);
-    final response = await request.send();
+  Future startRecord() async {
+    await recorder.startRecorder(toFile: 'temp.aac', codec: Codec.aacADTS);
+  }
 
-    if (response.statusCode == 201) {
-      final data = response.stream.bytesToString();
-      print(data);
-      return data;
+  Future stopRecorder() async {
+    var headers = {
+      'Content-type': 'multipart/form-data',
+    };
+    final filePath = await recorder.stopRecorder();
+    final file = File(filePath!);
+    print('Recorded file path: $filePath');
+    print(file);
+    final position = await _getCurrentLocation();
+    final latitude = position.latitude.toString();
+    final longitude = position.longitude.toString();
+    var request = http.MultipartRequest(
+        'POST', Uri.parse("https://api2.asr.dodoozy.com/asr"));
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+    request.headers.addAll(headers);
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      final responseBody = await response.stream.transform(utf8.decoder).join();
+      final responseData = jsonDecode(responseBody);
+      print(responseBody);
+      final result = audioresult.fromJson(responseData);
+      transcibe = result.result ?? 'Help me urgent';
+      API().sendwidget(transcibe);
     } else {
       print(response.reasonPhrase);
-      throw Exception('Failed to create evidence.');
     }
   }
 
@@ -97,22 +107,20 @@ class _SOSButtonState extends State<SOSButton> {
             widthFactor: 0.7,
             child: GestureDetector(
               onDoubleTap: () {
-                handleSOS();
+                _getCurrentLocationAndTrigger(widget.contacts);
               },
-              onTapDown: (TapDownDetails details) {
-                setState(() {
-                  isClicked = true;
-                });
-              },
-              onTapCancel: () {
-                setState(() {
-                  isClicked = false;
-                });
-              },
-              onTapUp: (TapUpDetails details) {
-                setState(() {
-                  isClicked = false;
-                });
+              onTap: () {
+                if (recorder.isRecording) {
+                  setState(() {
+                    isClicked = false;
+                  });
+                  stopRecorder();
+                } else {
+                  startRecord();
+                  setState(() {
+                    isClicked = true;
+                  });
+                }
               },
               child: Container(
                 width: constraints.maxWidth,
@@ -148,107 +156,7 @@ class _SOSButtonState extends State<SOSButton> {
     );
   }
 
-  Future<void> handleSOS() async {
-    _getCurrentLocationAndTrigger(widget.contacts);
-    // Initialize the cameras.
-    final cameras = await availableCameras();
-    final camera = cameras.first;
-
-    // Create a video recording controller.
-    final controller = CameraController(camera, ResolutionPreset.high);
-
-    // Initialize the camera controller.
-    await controller.initialize();
-    await audioRecord.start(encoder: AudioEncoder.wav);
-    setState(() {
-      isRecording = true;
-    });
-
-    // Start the video recording.
-    controller.startVideoRecording();
-
-    // Set isClicked to true to change the color to green.
-    setState(() {
-      isClicked = true;
-    });
-
-    // Create a timer to stop the video recording after 3 minutes.
-    Timer(const Duration(minutes: 0, seconds: 10), () async {
-      // Stop the video recording.
-      XFile videoFile = await controller.stopVideoRecording();
-      if (isRecording) {
-        _stopRecording();
-      }
-
-      // Set isClicked back to false to revert the color.
-      setState(() {
-        isClicked = false;
-      });
-
-      // Display a message to the user.
-      print("Recording stopped");
-
-      // Save the video to a local file
-      final appDir = await getTemporaryDirectory();
-      final videoFileName = DateTime.now().toIso8601String();
-      final videoPath = '${appDir.path}/$videoFileName.mp4';
-      await videoFile.saveTo(videoPath);
-
-      setState(() {
-        this.videoPath = videoPath;
-      });
-      // CloudinaryResponse response = await cloudinary.upload(
-      //   file: audioPath,
-      //   resourceType: CloudinaryResourceType.raw,
-      // );
-
-      // if (response.isSuccessful) {
-      //   cloudinaryUrlAudio = response.secureUrl;
-      //   print('Cloudinary URL: $cloudinaryUrlAudio');
-      // } else {
-      //   print('Cloudinary audio upload failed: ${response.error}');
-      // }
-
-      // CloudinaryResponse responseVid = await cloudinary.upload(
-      //   file: videoPath,
-      //   resourceType: CloudinaryResourceType.video,
-      // );
-
-      // if (responseVid.isSuccessful) {
-      //   cloudinaryUrlVideo = responseVid.secureUrl;
-      //   print('Cloudinary URL: $cloudinaryUrlVideo');
-      // } else {
-      //   print('Cloudinary video upload failed: ${responseVid.error}');
-      // }
-
-      final position = await _getCurrentLocation();
-      final latitude = position.latitude.toString();
-      final longitude = position.longitude.toString();
-
-      //final ACCESS_LOGIN = await storage.read(key: 'access_login');
-    final ACCESS_LOGIN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyMzczMTk2LCJpYXQiOjE2OTIxMTM5OTYsImp0aSI6ImZlY2UxMGUwMTkwOTQyMjM4ODE2YTJhOTNlZjFhYTE2IiwidXNlcl9pZCI6MjB9.PaAoJgTxfTPAM7wCCxsyI-4Cw_L4e6zQfIEVJtJYl8E";
-      //print(ACCESS_LOGIN);
-      print(videoPath);
-      print(audioPath);
-      print(latitude);
-      print(longitude);
-      final data = await setEvidence(
-          ACCESS_LOGIN!, videoPath, audioPath, '$latitude, $longitude');
-      // final data = await setEvidence(
-      //     ACCESS_LOGIN_TEMP, videoPath, audioPath, '$latitude, $longitude');
-      // Display the saved video
-      print(videoPath);
-    });
-  }
-
-  Future<void> _stopRecording() async {
-    String? path = await audioRecord.stop();
-    setState(() {
-      isRecording = false;
-      audioPath = path!;
-    });
-    print('Recorded audio path: $audioPath');
-  }
+  // final ACCESS_LOGIN =    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyMzczMTk2LCJpYXQiOjE2OTIxMTM5OTYsImp0aSI6ImZlY2UxMGUwMTkwOTQyMjM4ODE2YTJhOTNlZjFhYTE2IiwidXNlcl9pZCI6MjB9.PaAoJgTxfTPAM7wCCxsyI-4Cw_L4e6zQfIEVJtJYl8E";
 
   Future<Position> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -274,6 +182,15 @@ class _SOSButtonState extends State<SOSButton> {
   }
 
   Future<void> _getCurrentLocationAndTrigger(List<String> contacts) async {
+    Fluttertoast.showToast(
+      msg: 'SOS CALLED',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
     Position position;
     try {
       position = await _getCurrentLocation();
@@ -281,8 +198,9 @@ class _SOSButtonState extends State<SOSButton> {
       final longitude = position.longitude.toString();
       // final ACCESS_LOGIN = await storage.read(key: 'access_login');
       // await getNearestUsers(ACCESS_LOGIN, latitude, longitude);
-      String message = 'Krish Shah\n\n';
-      message += 'Project practice Che Ignore !!\n\n';
+      String message = 'Jan Rakshak\n\n';
+      message +=
+          'Some one who added you to emergency Contact needs Help. !!\n\n';
       message += 'My current location is:\n';
       message += 'Latitude: ${position.latitude}\n';
       message += 'Longitude: ${position.longitude}\n';

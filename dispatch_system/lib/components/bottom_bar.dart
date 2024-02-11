@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/details_page.dart';
 import '../screens/fake_call_screen.dart';
 import '../screens/home_screen.dart';
@@ -39,8 +40,15 @@ class _BottomPageState extends State<BottomPage> {
     });
   }
 
+  getUserUid() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    print(prefs.getString('userUid'));
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('THE UID IS');
+    getUserUid();
     return Scaffold(
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
