@@ -51,7 +51,7 @@ const text_to_widget = async (transcribed_text) => {
 
     const priorityIndexes = [serviceIndexes[0],serviceIndexes[1]];
     const optionalIndexes = [serviceIndexes[2],serviceIndexes[3],serviceIndexes[4]];
-    return [priorityIndexes, optionalIndexes]; 
+    return {priorityIndexes: priorityIndexes, optionalIndexes: optionalIndexes}; 
     // priority -> by default send Alert
     // optional -> give user the flexibilty to send Alert or not
 }
