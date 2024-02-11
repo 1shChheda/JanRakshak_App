@@ -87,22 +87,25 @@ const nearestHospitalsInPriorityOrder = async (req, res, next) => {
         const hospitals = await Hospital.fetchAll();
 
         let nearestHospitals = [];
+        let nearestHospitalsUid = [];
 
         const rankedHospitalsData = calculateHospitalDistances(currentLatitude, currentLongitude, hospitals);
 
         for (const obj of rankedHospitalsData) {
             try {
                 const hospital = await Hospital.findOne({ name: obj.hospitalName });
-                // console.log(hospital);
-                nearestHospitals.push(new mongodb.ObjectId(hospital._id));
+                nearestHospitals.push({ name: hospital.name, lat: hospital.lat, long: hospital.long });
+                nearestHospitalsUid.push(new mongodb.ObjectId(hospital._id));
             } catch (error) {
                 console.log(error);
             }
         }
 
-        const updateUser = new User(user._id, user.name, user.phoneNo, user.emergencyContacts, user.lastEmergencyCoord, nearestHospitals)
-        await updateUser.save()
-        return res.json(nearestHospitals);
+        // Update the user with nearest hospital IDs
+        const updateUser = new User(user._id, user.name, user.phoneNo, user.emergencyContacts, user.lastEmergencyCoord, nearestHospitalsUid);
+        await updateUser.save();
+
+        return res.status(200).json(nearestHospitals);
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: error.message });
@@ -126,7 +129,7 @@ const verifyResources = async (req, res, next) => {
                 const updateHospital = new Hospital(hospital._id, hospital.name, hospital.lat, hospital.long, hospital.resources)
                 await updateHospital.save();
 
-                return res.status(200).json({ coordinates: [hospital.lat, hospital.long] });
+                return res.status(200).json({ name: hospital.name, coordinates: [hospital.lat, hospital.long] });
             }
         }
 
