@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "402355417473",
+    "project_id": "dispatch-unit",
+    "storage_bucket": "dispatch-unit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402355417473:android:78d65e6e8ada8387d67880",
+        "android_client_info": {
+          "package_name": "com.example.dispatch_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4hVqG1wkyZt6qK15oFJSX6eANm6ImwNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
